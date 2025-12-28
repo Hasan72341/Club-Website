@@ -1,171 +1,229 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { getEvents, getAssetUrl } from '../api';
+
+
 
 const ModernCarousel = () => {
-  const slides = [
-    {
-      url: 'img/1.jpg',
-      title: 'Mock OA For Second Year',
-      description: ''
-    },
-    {
-      url: 'img/2.jpg',
-      title: 'Inter-IIT BootCamp',
-      description: ''
-    },
-    {
-      url: 'img/3.jpg',
-      title: 'BlockChain Session',
-      description: ''
-    },
-    {
-      url: 'img/4.jpg',
-      title: 'CP-101 For Second Year',
-      description: ''
-    },
-    {
-      url: 'https://cc.iitmandi.co.in/_next/image?url=%2Fassets%2Fimages%2Fcampus.jpeg&w=1920&q=75',
-      title: 'Sports Complex',
-      description: 'World-class sports facilities'
-    },
-  ];
+  const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getEvents()
+      .then(data => {
+        const homeSlides = data.events
+          .filter(event => event.home)
+          .map(event => ({
+            url: getAssetUrl(event.image),
+            title: event.title,
+            description: event.description,
+            index: event.index
+          }));
+        setSlides(homeSlides);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load carousel data:', err);
+        setLoading(false);
+      });
+  }, []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isTouching, setIsTouching] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragX = useMotionValue(0);
+  const containerRef = useRef(null);
+
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
 
   useEffect(() => {
-    let interval;
-    if (isAutoPlaying && !isTouching) {
-      interval = setInterval(() => {
-        nextSlide();
-      }, 5000);
-    }
+    if (!isAutoPlaying || isDragging) return;
+    const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [currentIndex, isAutoPlaying, isTouching]);
+  }, [isAutoPlaying, isDragging, nextSlide]);
 
-  const prevSlide = () => {
-    const isFirstSlide = currentIndex === 0;
-    const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
-    setCurrentIndex(newIndex);
-  };
+  // Drag handling
+  const handleDragEnd = (e, { offset, velocity }) => {
+    setIsDragging(false);
+    const swipe = offset.x;
 
-  const nextSlide = () => {
-    const isLastSlide = currentIndex === slides.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
-    setCurrentIndex(newIndex);
-  };
-
-  const goToSlide = (slideIndex) => {
-    setCurrentIndex(slideIndex);
-  };
-
-  // Touch handlers
-  const handleTouchStart = (e) => {
-    setIsTouching(true);
-    setTouchStart(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isTouching) return;
-    
-    const touchEnd = e.touches[0].clientX;
-    const diff = touchStart - touchEnd;
-    
-    if (Math.abs(diff) > 50) { // Minimum swipe distance
-      if (diff > 0) {
-        nextSlide();
-      } else {
-        prevSlide();
-      }
-      setIsTouching(false);
+    if (swipe < -100 || velocity.x < -500) {
+      nextSlide();
+    } else if (swipe > 100 || velocity.x > 500) {
+      prevSlide();
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsTouching(false);
+  // Progress calculation
+  const progress = ((currentIndex + 1) / slides.length) * 100;
+
+  // Slide variants for 3D effect
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      scale: 0.9,
+      opacity: 0,
+      rotateY: direction > 0 ? 15 : -15,
+    }),
+    center: {
+      x: 0,
+      scale: 1,
+      opacity: 1,
+      rotateY: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.32, 0.72, 0, 1],
+      },
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      scale: 0.9,
+      opacity: 0,
+      rotateY: direction < 0 ? 15 : -15,
+      transition: {
+        duration: 0.6,
+        ease: [0.32, 0.72, 0, 1],
+      },
+    }),
   };
+
+  const [[page, direction], setPage] = useState([0, 0]);
+
+  const paginate = (newDirection) => {
+    if (newDirection === 1) {
+      setPage([page + 1, 1]);
+      nextSlide();
+    } else {
+      setPage([page - 1, -1]);
+      prevSlide();
+    }
+  };
+
+  if (loading || slides.length === 0) return null;
 
   return (
-    <div className="relative group w-full max-w-6xl mx-auto h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg sm:rounded-xl bg-gray-100 shadow-xl">
-      <div 
-        className="w-full h-full relative duration-500 ease-out flex touch-pan-y"
-        style={{
-          transform: `translateX(-${currentIndex * 100}%)`,
-          transition: 'transform 0.5s ease-out'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+    <div className="relative w-full max-w-6xl mx-auto font-mono">
+      {/* Progress Bar */}
+      <div className="absolute -top-8 left-0 right-0 h-[1px] bg-white/10">
+        <motion.div
+          className="h-full bg-white"
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+
+      {/* Main Container */}
+      <div
+        ref={containerRef}
+        className="group relative aspect-[16/9] md:aspect-[21/9] overflow-hidden bg-black"
+        style={{ perspective: '1200px' }}
       >
-        {slides.map((slide, index) => (
-          <div
-            key={index}
-            className="min-w-full h-full relative"
+        {/* Slides */}
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          <motion.div
+            key={currentIndex}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={handleDragEnd}
+            className="absolute inset-0 cursor-grab active:cursor-grabbing"
+            style={{ transformStyle: 'preserve-3d' }}
           >
+            {/* Image */}
             <img
-              src={slide.url}
-              alt={slide.title}
-              className="w-full h-full object-cover"
+              src={slides[currentIndex].url}
+              alt={slides[currentIndex].title}
+              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+              draggable={false}
             />
-            <div className="absolute inset-0 bg-black/30 transition-opacity duration-300" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 bg-gradient-to-t from-black/80 to-transparent">
-              <h3 className="text-white text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">{slide.title}</h3>
-              <p className="text-white/90 text-sm sm:text-base">{slide.description}</p>
+
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+            {/* Content */}
+            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-6xl md:text-8xl font-bold text-white/20">
+                    {slides[currentIndex].index}
+                  </span>
+                  <div className="w-16 h-[1px] bg-white/30" />
+                </div>
+                <h3 className="text-4xl md:text-6xl font-bold text-white uppercase tracking-wider mb-2">
+                  {slides[currentIndex].title}
+                </h3>
+                <p className="text-lg text-white/60">
+                  {slides[currentIndex].description}
+                </p>
+              </motion.div>
             </div>
-          </div>
-        ))}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={() => paginate(-1)}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-white/20 text-white/40 hover:text-white hover:border-white/60 hover:bg-white/5 transition-all z-10"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={() => paginate(1)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-white/20 text-white/40 hover:text-white hover:border-white/60 hover:bg-white/5 transition-all z-10"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Play/Pause */}
+        <button
+          onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center border border-white/20 text-white/40 hover:text-white hover:border-white/60 transition-all z-10"
+        >
+          {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+        </button>
       </div>
 
-      {/* Navigation Arrows - Hidden on mobile, visible on larger screens */}
-      <button
-        onClick={prevSlide}
-        className="hidden sm:group-hover:block absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300"
-      >
-        <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <button
-        onClick={nextSlide}
-        className="hidden sm:group-hover:block absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300"
-      >
-        <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Dots Navigation */}
-      <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2">
-        {slides.map((_, slideIndex) => (
+      {/* Slide Indicators */}
+      <div className="flex justify-center items-center gap-6 mt-6">
+        {slides.map((slide, index) => (
           <button
-            key={slideIndex}
-            onClick={() => goToSlide(slideIndex)}
-            className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-              currentIndex === slideIndex 
-                ? 'bg-white scale-125' 
-                : 'bg-white/50 hover:bg-white/75'
-            }`}
-          />
+            key={index}
+            onClick={() => {
+              setPage([index, index > currentIndex ? 1 : -1]);
+              setCurrentIndex(index);
+            }}
+            className="group relative"
+          >
+            <span className={`text-sm font-mono transition-all ${currentIndex === index ? 'text-white' : 'text-white/30 hover:text-white/60'
+              }`}>
+              {slide.index}
+            </span>
+            {currentIndex === index && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute -bottom-2 left-0 right-0 h-[2px] bg-white"
+              />
+            )}
+          </button>
         ))}
       </div>
-
-      {/* Autoplay Control */}
-      <button
-        onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-        className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300"
-      >
-        {isAutoPlaying ? (
-          <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ) : (
-          <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )}
-      </button>
     </div>
   );
 };

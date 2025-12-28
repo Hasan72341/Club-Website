@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import bg from '../assets/bg.jpg'
+import { motion } from 'framer-motion';
+import { Mail, Phone, Send, Instagram, Linkedin, Github, User, AtSign, MessageSquare, Terminal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { getTeam, getAssetUrl } from '../api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -7,129 +13,222 @@ const Contact = () => {
     email: '',
     message: '',
   });
+  const [coordinator, setCoordinator] = useState(null);
+
+  React.useEffect(() => {
+    getTeam()
+      .then(data => {
+        const coordRole = data.roles.find(r => r.role === 'Coordinator');
+        if (coordRole && coordRole.members.length > 0) {
+          setCoordinator(coordRole.members[0]);
+        }
+      })
+      .catch(err => console.error('Failed to load coordinator:', err));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Email details
     const receiverEmail = 'pc@students.iitmandi.ac.in';
     const subject = `Contact from ${formData.name}`;
     const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0A%0D%0AMessage:%0D%0A${formData.message}`;
-    
-    // Create mailto link
     const mailtoLink = `mailto:${receiverEmail}?subject=${encodeURIComponent(subject)}&body=${body}`;
-    
-    // Open the email client
     window.location.href = mailtoLink;
-    
-    console.log('Email link opened with form data:', formData);
   };
 
+  const contactInfo = [
+    { icon: Mail, label: 'EMAIL', value: 'pc@students.iitmandi.ac.in', href: 'mailto:pc@students.iitmandi.ac.in' },
+    { icon: Phone, label: 'PHONE', value: '+91 94185 39191', href: 'tel:+919418539191' },
+  ];
+
+  const socialLinks = [
+    { icon: Github, href: 'https://github.com/KamandPrompt', label: 'GITHUB' },
+    { icon: Instagram, href: 'https://www.instagram.com/kamandprompt/', label: 'INSTAGRAM' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/company/programming-club-iit-mandi/', label: 'LINKEDIN' },
+  ];
+
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat z-0" 
-           style={{ backgroundImage: `url(${bg})` }} />
-      
-      {/* Dot overlay */}
-      <div className="absolute inset-0 w-full h-full z-0"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #eeeeee 2px, transparent 2px)',
-          backgroundSize: '64px 64px',
-          opacity: 0.3
-        }} />
-      
-      {/* Content container */}
-      <div className="relative z-10 min-h-screen w-full flex items-center justify-center px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
-          {/* Contact Form */}
-          <div className="w-full p-6 md:p-8 rounded-lg shadow-lg bg-black bg-opacity-30 backdrop-blur-sm order-2 md:order-1">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Contact Us</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-white mb-2">Name</label>
-                <input
-                  type="text"
+    <main className="relative min-h-screen bg-black pt-24 pb-16 font-mono">
+      {/* Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-white/30 mb-8 text-sm text-white/50">
+            <Terminal className="w-4 h-4" />
+            $ ./contact.sh --init
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold uppercase  tracking-wider mb-6">
+            CONTACT US
+          </h1>
+          <p className="text-white/50">
+            send_us_a_message
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="border border-white/30 bg-black"
+          >
+            {/* Terminal Header */}
+            <div className="px-4 py-2 border-b border-white/30 bg-white/5">
+              <span className="text-xs text-white/50">message.sh</span>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white/60 text-xs">
+                  $ name
+                </Label>
+                <Input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-md focus:ring-2 focus:ring-white text-black transition duration-300 focus:outline-none bg-white"
-                  placeholder="Your Name"
+                  placeholder="your_name"
+                  className="bg-white/5 border-white/30 text-white placeholder:text-white/30"
                   required
                 />
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm text-white font-medium mb-2">Email</label>
-                <input
-                  type="email"
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/60 text-xs">
+                  $ email
+                </Label>
+                <Input
                   id="email"
                   name="email"
+                  type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-md focus:ring-2 text-black transition duration-300 focus:ring-white focus:outline-none bg-white"
-                  placeholder="Your Email"
+                  placeholder="your@email.com"
+                  className="bg-white/5 border-white/30 text-white placeholder:text-white/30"
                   required
                 />
               </div>
 
-              <div className="bg-transparent">
-                <label htmlFor="message" className="block text-sm font-medium text-white mb-2">Message</label>
-                <textarea
+              <div className="space-y-2">
+                <Label htmlFor="message" className="text-white/60 text-xs">
+                  $ message
+                </Label>
+                <Textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full text-black px-4 py-3 rounded-md focus:ring-2 focus:ring-white focus:outline-none bg-white"
-                  rows="4"
-                  placeholder="Your Message"
-                  required 
-                ></textarea>
+                  placeholder="your_message..."
+                  className="bg-white/5 border-white/30 text-white placeholder:text-white/30 min-h-[120px]"
+                  required
+                />
               </div>
 
-              <div className="pt-2 bg-transparent">
-                <button
-                  type="submit"
-                  className="w-full bg-white opacity-80 border-white transition-all py-3 hover:shadow-[0_0_5px_2px_rgba(255,255,255,0.8)] duration-300 rounded-md text-black font-bold"
-                >
-                  Send Email
-                </button>
-              </div>
+              <Button type="submit" variant="default" size="lg" className="w-full">
+                $ ./send.sh
+                <Send className="w-4 h-4 ml-2" />
+              </Button>
             </form>
-          </div>
+          </motion.div>
 
-          {/* Profile */}
-          <div className="w-full flex flex-col items-center justify-center text-center space-y-4 p-6 md:p-8 rounded-lg shadow-lg bg-black bg-opacity-30 backdrop-blur-sm order-1 md:order-2">
-            <img
-              src="/teamphoto/abhijheetjha.jpeg"
-              alt="Profile"
-              className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover mb-3 border-white border-4"
-            />
-            <h3 className="text-xl md:text-2xl font-bold text-white">Abhijeet Jha</h3>
-            <p className="text-gray-300">Coordinator</p>
-            <p className="text-gray-300">Phone: +91 92637 30646</p>
-            <div className="flex space-x-5 mt-3">
-              <a href="https://instagram.com" className="text-gray-300 hover:text-white transition duration-300">
-                <i className="fab fa-instagram text-2xl"></i>
-              </a>
-              <a href="https://linkedin.com" className="text-gray-300 hover:text-white transition duration-300">
-                <i className="fab fa-linkedin text-2xl"></i>
-              </a>
-            </div>
+          {/* Info */}
+          <div className="space-y-6">
+            {/* Contact Info */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="border border-white/30"
+            >
+              <div className="px-4 py-2 border-b border-white/30 bg-white/5">
+                <span className="text-xs text-white/50 uppercase">$ cat contact.txt</span>
+              </div>
+              <div className="p-6 space-y-4">
+                {contactInfo.map((info) => (
+                  <a
+                    key={info.label}
+                    href={info.href}
+                    target={info.label === 'LOCATION' ? '_blank' : undefined}
+                    rel={info.label === 'LOCATION' ? 'noopener noreferrer' : undefined}
+                    className="flex items-center gap-4 p-3 border border-white/20 hover:border-white transition-all group"
+                  >
+                    <info.icon className="w-5 h-5 text-white/50 group-hover:text-white" />
+                    <div>
+                      <div className="text-xs text-white/40">{info.label}</div>
+                      <div className="text-sm text-white">{info.value}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Coordinator */}
+            {coordinator && (
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="border border-white/30"
+              >
+                <div className="px-4 py-2 border-b border-white/30 bg-white/5">
+                  <span className="text-xs text-white/50 uppercase">$ whoami --coordinator</span>
+                </div>
+                <div className="p-6 flex items-center gap-4">
+                  <img
+                    src={getAssetUrl(coordinator.image, '/team')}
+                    alt={coordinator.name}
+                    className="w-16 h-16 grayscale hover:grayscale-0 transition-all object-cover border border-white/30"
+                  />
+                  <div>
+                    <h3 className="text-lg font-bold text-white uppercase">{coordinator.name.replace(' ', '_')}</h3>
+                    <p className="text-xs text-white/50 uppercase">COORDINATOR</p>
+                    <p className="text-sm text-white/60 mt-1">{coordinator.phone}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Social */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              className="border border-white/30"
+            >
+              <div className="px-4 py-2 border-b border-white/30 bg-white/5">
+                <span className="text-xs text-white/50 uppercase">$ ls /socials</span>
+              </div>
+              <div className="p-6 flex gap-4">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 p-4 border border-white/20 text-center hover:border-white transition-all group"
+                  >
+                    <social.icon className="w-6 h-6 mx-auto mb-2 text-white/50 group-hover:text-white" />
+                    <span className="text-xs text-white/50 group-hover:text-white">
+                      {social.label}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

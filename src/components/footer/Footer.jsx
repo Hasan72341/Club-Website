@@ -1,90 +1,68 @@
 import React from 'react';
-import { faGithub, faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import logo from '../../assets/logo.svg';
-import { Link } from 'react-router-dom';
+import { Github, Instagram, Linkedin, ArrowUpRight } from 'lucide-react';
 
 function Footer() {
+  const socials = [
+    { icon: Github, href: 'https://github.com/KamandPrompt', label: 'GitHub' },
+    { icon: Instagram, href: 'https://www.instagram.com/kamandprompt/', label: 'Instagram' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/company/programming-club-iit-mandi/', label: 'LinkedIn' },
+  ];
+
   return (
-    <footer className="bg-gray-100 text-gray-700 pt-8 sm:pt-16">
-      <div className="container mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 mx-16">
-          {/* Logo Section */}
-          <div className="flex flex-col items-center sm:items-start">
-            <img src={logo} alt="Programming Club Logo" className="h-16 mb-4" />
-            <p className="font-bold py-2 sm:py-4 text-xl text-center sm:text-left">
-              PROGRAMMING CLUB
+    <footer className="bg-black font-mono border-t border-white/10">
+      {/* Main Section */}
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Left - Brand + CTA */}
+          <div>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white uppercase tracking-tight leading-tight mb-8">
+              Kamand<br />
+              <span className="text-white/30">Prompt</span>
+            </h2>
+            <p className="text-white/50 text-lg mb-8 max-w-md">
+              The Programming Club of IIT Mandi. Building the future, one commit at a time.
             </p>
+            <a
+              href="mailto:pc@students.iitmandi.ac.in"
+              className="group inline-flex items-center gap-3 text-white border-b border-white/30 pb-1 hover:border-white transition-colors"
+            >
+              <span>Get in touch</span>
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </a>
           </div>
 
-          {/* Quick Links */}
-          <div className="text-center sm:text-left mx-10">
-            <h3 className="font-extrabold text-xl mb-4">Quick Links</h3>
-            <ul className="space-y-3">
-              {['HOME', 'GSOC', 'TEAMS', 'CONTACT'].map((link) => (
-                <li key={link}>
-                  <Link
-                    to={`${link.toLowerCase()}`}
-                    className="relative font-medium transition-colors hover:text-gray-900 before:content-['</'] after:content-['>'] before:opacity-0 after:opacity-0 hover:before:opacity-100 hover:after:opacity-100 before:transition-opacity before:duration-300 after:transition-opacity after:duration-300 before:mr-1 after:ml-1"
+          {/* Right - Social Only */}
+          <div className="lg:pl-12 lg:flex lg:flex-col lg:justify-end">
+            <div>
+              <p className="text-xs text-white/30 uppercase tracking-widest mb-6">
+                Social
+              </p>
+              <div className="flex gap-4">
+                {socials.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 flex items-center justify-center border border-white/20 text-white/50 hover:text-white hover:border-white/50 transition-all"
+                    aria-label={social.label}
                   >
-                    {link}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Us */}
-          <div className="text-center sm:text-left mx-10">
-            <h3 className="font-extrabold text-xl mb-4">Contact Us</h3>
-            <div className="space-y-3">
-              <p className="flex items-center justify-center sm:justify-start space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-                <span className="font-medium">pc@students.iitmandi.ac.in</span>
-              </p>
-              <p className="flex items-center justify-center sm:justify-start space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                <span className="font-medium">+91 92637 30646</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Follow Us */}
-          <div className="text-center sm:text-left mx-10">
-            <h3 className="font-extrabold text-xl mb-4">Follow us</h3>
-            <div className="space-y-3">
-              <p className="flex items-center justify-center sm:justify-start space-x-2">
-                <FontAwesomeIcon icon={faInstagram} className="text-black w-6 h-6" />
-                <a href="#" className="font-medium hover:text-gray-900 before:content-['</'] after:content-['>'] before:opacity-0 after:opacity-0 hover:before:opacity-100 hover:after:opacity-100 before:transition-opacity before:duration-300 after:transition-opacity after:duration-300 before:mr-1 after:ml-1">
-                  Instagram
-                </a>
-              </p>
-              <p className="flex items-center justify-center sm:justify-start space-x-2">
-                <FontAwesomeIcon icon={faLinkedin} className="text-black w-6 h-6" />
-                <a href="#" className="font-medium hover:text-gray-900 before:content-['</'] after:content-['>'] before:opacity-0 after:opacity-0 hover:before:opacity-100 hover:after:opacity-100 before:transition-opacity before:duration-300 after:transition-opacity after:duration-300 before:mr-1 after:ml-1">
-                  LinkedIn
-                </a>
-              </p>
+                    <social.icon className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-
       </div>
-      {/* Copyright */}
-      <div className="bg-gray-200 py-6 sm:py-8 mt-8 sm:mt-16">
-        <p className="text-md text-gray-600 text-center">
-          © 2024 Kammand Prompt{' '}
-          <a href="https://iitmandi.ac.in" className="hover:text-gray-900 hover:underline font-semibold">
-            IIT Mandi
-          </a>
-        </p>
+
+      {/* Bottom Bar */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-center">
+          <p className="text-xs text-white/30">
+            © 2026 Programming Club, IIT Mandi
+          </p>
+        </div>
       </div>
     </footer>
   );

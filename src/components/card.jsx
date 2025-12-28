@@ -1,52 +1,88 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { motion } from 'framer-motion';
+import { Instagram, Linkedin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const Card = ({ imageUrl, name, linkedin, instagram }) => {
+const TeamCard = ({ imageUrl, name, role, linkedin, instagram, className }) => {
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
-    <div className="w-full max-w-[300px] sm:max-w-[350px] md:max-w-[400px] h-[350px] relative overflow-hidden transition-transform transform hover:scale-105 shadow-lg hover:shadow-xl duration-300 ease-in-out rounded-2xl bg-gradient-to-b from-white to-gray-50">
-      {/* Profile Image */}
-      <img
-        src={imageUrl}
-        alt={name}
-        className="w-full h-full object-cover rounded-t-2xl"
-      />
-      
-      {/* Details Container */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] sm:w-[85%] h-auto py-3 bg-white shadow-md flex flex-col items-center justify-center rounded-lg transition-transform duration-300 ease-in-out p-2">
-        {/* Name */}
-        <div className="text-center text-black font-serif font-bold text-lg sm:text-xl leading-snug transition-all duration-300 ease-in-out">
-          {name}
-        </div>
+    <div
+      className={cn(
+        "group relative w-full sm:max-w-[200px] md:max-w-[240px] lg:max-w-[280px] overflow-hidden",
+        "bg-black border border-white/20",
+        "hover:border-white/60 transition-all duration-200",
+        "font-mono",
+        className
+      )}
+    >
+      {/* Terminal Header */}
+      <div className="px-3 py-2 border-b border-white/20 bg-white/5">
+        <span className="text-xs text-white/50 tracking-wider">member.sh</span>
+      </div>
 
-        {/* Social Media Links */}
-        <div className="flex gap-4 mt-2">
-          {/* Instagram Link */}
+      {/* Image Container - Fixed, no animation on image itself */}
+      <div className="relative aspect-[3/4] overflow-hidden">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            loading="lazy"
+            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 will-change-transform"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
+            <span className="text-4xl font-bold text-white/30">
+              {getInitials(name)}
+            </span>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80" />
+      </div>
+
+      {/* Content */}
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        {/* Role */}
+        {role && (
+          <div className="mb-1 sm:mb-2 text-[10px] sm:text-xs text-white/50 group-hover:text-white/30 uppercase tracking-wider transition-colors duration-300">
+            {role}
+          </div>
+        )}
+
+        {/* Name */}
+        <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white group-hover:text-white/60 uppercase tracking-wider mb-2 sm:mb-3 transition-colors duration-300">
+          {name}
+        </h3>
+
+        {/* Social Links */}
+        <div className="flex items-center gap-2">
           {instagram && (
             <a
               href={instagram}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram"
+              className="p-2 border border-white/30 text-white/60 hover:text-white hover:border-white transition-all duration-200"
             >
-              <FontAwesomeIcon
-                icon={faInstagram}
-                className="w-5 h-5 sm:w-6 sm:h-6 text-black hover:text-gray-700 transition-colors duration-300"
-              />
+              <Instagram className="w-4 h-4" />
             </a>
           )}
-          {/* LinkedIn Link */}
           {linkedin && (
             <a
               href={linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="LinkedIn"
+              className="p-2 border border-white/30 text-white/60 hover:text-white hover:border-white transition-all duration-200"
             >
-              <FontAwesomeIcon
-                icon={faLinkedin}
-                className="w-5 h-5 sm:w-6 sm:h-6 text-black hover:text-gray-700 transition-colors duration-300"
-              />
+              <Linkedin className="w-4 h-4" />
             </a>
           )}
         </div>
@@ -55,4 +91,4 @@ const Card = ({ imageUrl, name, linkedin, instagram }) => {
   );
 };
 
-export default Card;
+export default TeamCard;

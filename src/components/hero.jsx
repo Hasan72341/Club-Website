@@ -1,219 +1,198 @@
-import React, { useEffect } from 'react';
-import bg from '../assets/bg.jpg';
-
-import DottedBackground from './dots';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faCode, faCodeBranch, faLaptopCode, 
-  faServer, faTerminal 
-} from '@fortawesome/free-solid-svg-icons';
-import {
-  faGithub, faInstagram, faLinkedin
-} from '@fortawesome/free-brands-svg-icons';
-
-const FloatingElement = ({ className, icon }) => (
-  <div className={`absolute w-8 md:w-10 h-8 md:h-10 
-    shadow-lg shadow-purple-500/20 opacity-80 rounded-xl backdrop-blur-md animate-float 
-    hover:scale-110 transition-transform duration-300 ${className}`}>
-    <FontAwesomeIcon 
-      icon={icon} 
-      className="text-white w-[20px] md:w-[24px] h-[20px] md:h-[24px] p-2" 
-    />
-  </div>
-);
-
-const SocialIcon = ({ icon, name, link }) => (
-  <a 
-    href={link}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="group relative w-10 h-10 bg-gradient-to-br from-purple-500/20 to-blue-500/20 
-      rounded-xl backdrop-blur-md hover:from-purple-500/30 hover:to-blue-500/30 
-      transition-all duration-300 flex items-center justify-center"
-  >
-    <FontAwesomeIcon
-      icon={icon}
-      className="text-white w-6 h-6 group-hover:scale-110 transition-transform duration-300"
-    />
-    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800/90 text-white text-sm 
-      rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-      {name}
-    </span>
-  </a>
-);
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { ArrowRight, Terminal, Code2, Users, Trophy } from 'lucide-react';
+import MagneticButton from './MagneticButton';
 
 const HeroSection = () => {
-  const socialIcons = [
-    { icon: faGithub, name: 'Follow on GitHub', link: 'https://github.com/KamandPrompt' },
-    { icon: faInstagram, name: 'Follow on Instagram', link: 'https://www.instagram.com/kamandprompt/' },
-    { icon: faLinkedin, name: 'Connect on LinkedIn', link: 'https://www.linkedin.com/company/programming-club-iit-mandi/posts/?feedView=all' },
-  ];
-  const floatingElements = [
-    // Top row
-    {
-      icon: faGithub,
-      className: "top-[15%] left-[15%] parallax",
-      speed: 2,
-      delay: "animation-delay-1000"
-    },
-    {
-      icon: faCodeBranch,
-      className: "top-[20%] right-[20%] parallax",
-      speed: 4,
-      delay: "animation-delay-2000"
-    },
-    // Middle row - left and right
-    {
-      icon: faCode,
-      className: "top-[50%] left-[10%] parallax",
-      speed: 3,
-      delay: "animation-delay-3000"
-    },
-    {
-      icon: faLaptopCode,
-      className: "top-[45%] right-[12%] parallax",
-      speed: 5,
-      delay: "animation-delay-2500"
-    },
-    // Bottom row
-    {
-      icon: faServer,
-      className: "bottom-[20%] left-[25%] parallax",
-      speed: 6,
-      delay: "animation-delay-4000"
-    },
-    {
-      icon: faTerminal,
-      className: "bottom-[15%] right-[25%] parallax",
-      speed: 3,
-      delay: "animation-delay-3500"
-    }
-  ];
+  const containerRef = useRef(null);
+
+  // Smooth mouse tracking for parallax
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  // Parallax transforms
+  const orbX = useTransform(smoothX, [-500, 500], [-30, 30]);
+  const orbY = useTransform(smoothY, [-500, 500], [-30, 30]);
 
   useEffect(() => {
-    const parallaxEffect = (e) => {
-      const elements = document.querySelectorAll('.parallax');
-      elements.forEach(elem => {
-        const speed = elem.getAttribute('data-speed');
-        const x = (window.innerWidth - e.pageX * speed) / 100;
-        const y = (window.innerHeight - e.pageY * speed) / 100;
-        elem.style.transform = `translateX(${x}px) translateY(${y}px)`;
-      });
+    const handleMouseMove = (e) => {
+      const { clientX, clientY } = e;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      mouseX.set(clientX - centerX);
+      mouseY.set(clientY - centerY);
     };
 
-    document.addEventListener('mousemove', parallaxEffect);
-    return () => document.removeEventListener('mousemove', parallaxEffect);
-  }, []);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
+
+  const stats = [
+    { icon: Users, value: '50+', label: 'MEMBERS' },
+    { icon: Trophy, value: '15+', label: 'GSOC' },
+    { icon: Code2, value: '20+', label: 'PROJECTS' },
+  ];
+
+
+
+  // Counter animation for stats
+  const AnimatedCounter = ({ value }) => {
+    const [count, setCount] = useState(0);
+    const numericValue = parseInt(value);
+    const ref = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => setIsVisible(entry.isIntersecting),
+        { threshold: 0.5 }
+      );
+      if (ref.current) observer.observe(ref.current);
+      return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+      if (isVisible) {
+        let start = 0;
+        const duration = 800;
+        const startTime = performance.now();
+
+        const animate = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 4);
+          setCount(Math.floor(easeProgress * numericValue));
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+    }, [isVisible, numericValue]);
+
+    return <span ref={ref}>{count}+</span>;
+  };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      
-      {/* Background with Gradient Overlay */}
-      <div 
-        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${bg})` }}
+    <section
+      ref={containerRef}
+      className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-black"
+    >
+      {/* Animated Gradient Orbs */}
+      <motion.div
+        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+          x: orbX,
+          y: orbY,
+        }}
+      />
+      <motion.div
+        className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
+          x: useTransform(orbX, v => -v * 0.5),
+          y: useTransform(orbY, v => -v * 0.5),
+        }}
       />
 
-<div className="fixed left-0 top-0 inset-0 grid"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #eeeeee 2px, transparent 2px)',
-          backgroundSize: '64px 64px',
-          backgroundAttachment: 'fixed',
-          opacity: 0.3
-        }}>
-      </div>
-      {/* <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" /> */}
-
-      {/* Floating Elements */}
-      {floatingElements.map((element, index) => (
-        <FloatingElement
-          key={index}
-          icon={element.icon}
-          className={`${element.className} ${element.delay}`}
-          data-speed={element.speed}
-        />
-      ))}
-
       {/* Main Content */}
-      <div className="relative z-1 h-full flex flex-col items-center justify-center px-4">
-        <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold  bg-clip-text 
-          text-white mb-4 animate-fadeIn text-center">
-          &lt;Kamand Prompt/&gt;
-        </h1>
-        <p className="text-lg md:text-2xl text-gray-300 animate-slideUp text-center 
-          max-w-2xl mx-auto leading-relaxed">
-          &lt;Coding the future with Prompt/&gt;
-        </p>
-        
-        {/* CTA Button */}
-        <button
-  onClick={() => window.open("https://www.instagram.com/kamandprompt/", "_blank")}
-  className="mt-8 px-8 py-3 bg-white
-    rounded-full text-black font-semibold hover:scale-105 transition-transform 
-    duration-300 animate-pulse"
->
-  Join Our Community
-</button>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Terminal Prompt */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="inline-flex items-center gap-2 px-4 py-2 border border-white/20 mb-8 font-mono text-sm text-white/60"
+        >
+          <Terminal className="w-4 h-4" />
+          <span>$ cd /iit-mandi/programming-club</span>
+          <motion.span
+            animate={{ opacity: [1, 0] }}
+            transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+          >
+            █
+          </motion.span>
+        </motion.div>
 
+        {/* Main Title */}
+        <div className="mb-8">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-bold text-white uppercase tracking-tighter leading-none">
+            KAMAND
+          </h1>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-bold text-white uppercase tracking-tighter leading-none">
+            PROMPT
+          </h1>
+        </div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="text-lg sm:text-xl md:text-2xl text-white/50 max-w-2xl mx-auto mb-12 font-mono"
+        >
+          THE PROGRAMMING CLUB @ IIT MANDI
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.6 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          role="group"
+          aria-label="Call to action buttons"
+        >
+          <MagneticButton
+            onClick={() => window.open('https://www.instagram.com/kamandprompt/', '_blank')}
+            className="group px-8 py-4 bg-white text-black font-bold uppercase tracking-wider hover:bg-white/90 transition-colors flex items-center gap-2"
+            aria-label="Join Kamand Prompt on Instagram"
+          >
+            $ ./join.sh
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          </MagneticButton>
+          <MagneticButton
+            onClick={() => window.open('https://github.com/KamandPrompt', '_blank')}
+            className="px-8 py-4 border-2 border-white/50 text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-all"
+            aria-label="View projects on GitHub"
+          >
+            $ cat projects
+          </MagneticButton>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.6 }}
+          className="grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.8)' }}
+              className="border border-white/20 p-4 sm:p-6 transition-all duration-300 group cursor-default"
+            >
+              <stat.icon className="w-6 h-6 mx-auto mb-2 text-white/40 group-hover:text-white transition-colors" />
+              <div className="text-2xl sm:text-4xl font-bold text-white mb-1 font-mono">
+                <AnimatedCounter value={stat.value} />
+              </div>
+              <div className="text-xs sm:text-sm text-white/40 uppercase tracking-wider">
+                {stat.label}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
-      {/* Social Icons */}
-      {/* <div className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-2">
-        {socialIcons.map((iconObj, index) => (
-          <SocialIcon 
-            key={iconObj.name}
-            icon={iconObj.icon}
-            name={iconObj.name}
-            link={iconObj.link}
-          />
-        ))}
-      </div> */}
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <span className="block w-6 h-6 border-2 border-white border-t-0 border-l-0 rotate-45" />
-      </div>
-    </div>
+    </section>
   );
 };
-
-// Add these custom animations to your Tailwind config
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 1s ease-out forwards;
-  }
-
-  .animate-slideUp {
-    animation: slideUp 1s ease-out forwards;
-  }
-
-  .animation-delay-1000 { animation-delay: 1s; }
-  .animation-delay-2000 { animation-delay: 2s; }
-  .animation-delay-3000 { animation-delay: 3s; }
-  .animation-delay-4000 { animation-delay: 4s; }
-  .animation-delay-5000 { animation-delay: 5s; }
-`;
-document.head.appendChild(style);
 
 export default HeroSection;
