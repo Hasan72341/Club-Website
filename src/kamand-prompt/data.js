@@ -2,12 +2,12 @@
 
 export const ASCII_ART = {
   logo: `
- _  __                                _   ____                            _
-  | | / /__ _ _ __ ___   __ _ _ __   __ | | | _ \\ _ __ ___  _ __ ___  _ __ | | _
-    | ' // _\` | '_ \` _ \\ / _\` | '_ \\ / _\` | | |_) | '__/ _ \\| '_ \` _ \\| '_ \\| __|
+ _  __                                 _   ____                            _   
+| |/ /__ _ _ __ ___   __ _ _ __   __| | |  _ \\ _ __ ___  _ __ ___  _ __ | |_ 
+| ' // _\` | '_ \` _ \\ / _\` | '_ \\ / _\` | | |_) | '__/ _ \\| '_ \` _ \\| '_ \\| __|
 | . \\ (_| | | | | | | (_| | | | | (_| | |  __/| | | (_) | | | | | | |_) | |_ 
 |_|\\_\\__,_|_| |_| |_|\\__,_|_| |_|\\__,_| |_|   |_|  \\___/|_| |_| |_| .__/ \\__|
-                                                                   |_|        
+                                                                  |_|        
 `,
   cow: (text) => `
   ${'_'.repeat(text.length + 2)}
@@ -19,7 +19,7 @@ export const ASCII_ART = {
                 ||----w |
                 ||     ||
 `,
-  neofetch: `
+  fastfetch: `
        .---.        pc@students.iitmandi.ac.in
       /     \\       ----------------------
       \\.@-@./       OS: KamandPrompt
@@ -179,7 +179,7 @@ FUN COMMANDS
   date        Current date & time
   echo [msg]  Echo a message
   cowsay [msg] Cow says something
-  neofetch    System information
+  fastfetch   System information
   sudo [cmd]  Try running as root 
   rm -rf /    Delete everything... or not
   matrix      Enter the matrix
@@ -209,10 +209,10 @@ Type any command and press Enter!
 │  We are a community of passionate coders,   │
 │  innovators, and tech enthusiasts.          │
 │                                             │
-│  Mission: Foster coding culture          │
-│  Est: 2014                               │
-│  Home: IIT Mandi, Kamand Campus          │
-│  Members: 50+                            │
+│  Mission: Foster coding culture             │
+│  Est: 2014                                  │
+│  Home: IIT Mandi, Kamand Campus             │
+│  Members: 50+                               │
 │                                             │
 │  We organize workshops, hackathons,         │
 │  coding competitions, and contribute        │
@@ -410,10 +410,10 @@ Query: pc@students.iitmandi.ac.in
     })
   },
 
-  neofetch: {
+  fastfetch: {
     description: 'System info',
     execute: () => ({
-      output: ASCII_ART.neofetch,
+      output: ASCII_ART.fastfetch,
       type: 'info'
     })
   },
@@ -493,9 +493,7 @@ export const handleSpecialCommands = (input, history) => {
   if (cmd === 'sudo') {
     return {
       output: `Password: ********
-Sorry, user is not in the sudoers file. This incident will be reported. 😏
-
-Just kidding! But nice try getting root access.`,
+Sorry, user is not in the sudoers file. This incident will be reported.`,
       type: 'error'
     };
   }
@@ -503,8 +501,8 @@ Just kidding! But nice try getting root access.`,
   // rm -rf command
   if (input.includes('rm') && input.includes('-rf')) {
     return {
-      output: `🛡️ Nice try! System protected.
-Permission denied: Cannot delete the universe.
+      output: `System protected !
+Permission denied: Cannot delete the KPverse.
 
 Maybe try 'help' instead?`,
       type: 'error'
